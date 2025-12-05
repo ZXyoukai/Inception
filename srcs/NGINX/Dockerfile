@@ -1,5 +1,6 @@
-from debian:debian12
+FROM debian:latest
 
-run apt-get update && apt-get install -y nginx
+RUN apt-get update && apt-get install -y nginx
 
-cmd ["nginx", "-g", "daemon off;"]
+
+CMD ["nginx", "-g", "daemon off;"]
