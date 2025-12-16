@@ -1,18 +1,33 @@
 version: "3.8"
 
+networks:
+  public_I:
+    driver: bridge
+  private_I:
+    driver: bridge
 services:
       nginx:
-        build: ../NGINX
+        build: ./Nginx
         restart: always
         ports:
           - "8080:80"
-        # volumes:
+        volumes:
         #   - ./wordpress:/var/www/html
-        #   - ./nginx.conf:/etc/nginx/conf.d/default.conf
+          - ./nginx.conf:/etc/nginx/conf.d/default.conf
+        networks:
+          - public_I
+          - private_I
         # depends_on:
         #   - wordpress
 
-      # wordpress:
+      wordpress:
+        container_name: wordpress
+        build: ./WordPress
+        restart: always
+        ports:
+          - "9001:9001"
+        networks:
+          - private_I
       #   image: wordpress:php8.2-fpm
       #   restart: always
       #   environment:
