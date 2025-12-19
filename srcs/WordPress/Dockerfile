@@ -1,22 +1,26 @@
-FROM debian:latest
+FROM debian:bookworm
+
+RUN apt-get update && apt-get install -y \
+    php8.2-fpm \
+    php8.2-mysql \
+    mariadb-client \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install WP-CLI
+RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
+    && chmod +x wp-cli.phar \
+    && mv wp-cli.phar /usr/local/bin/wp
+
+# Create PHP run directory
+RUN mkdir -p /run/php
+
+COPY ./conf/www.conf /etc/php/8.2/fpm/pool.d/www.conf
+COPY ./tools/script.sh /usr/local/bin/script.sh
+RUN chmod +x /usr/local/bin/script.sh
 
 WORKDIR /var/www/html
 
+EXPOSE 9000
 
-RUN apt-get update && apt-get upgrade -y && apt-get install -y php8.4-fpm php-fpm 
-RUN chmod +x /usr/sbin/php-fpm8.4
-RUN apt-get install -y curl unzip \
-&& curl -o wordpress.tar.gz https://wordpress.org/latest.tar.gz \
-&& tar -xzf wordpress.tar.gz --strip-components=1 \
-&& rm wordpress.tar.gz
-
-RUN chown -R www-data:www-data /var/www/html \
-&& chmod -R 755 /var/www/html
-
-COPY index.php .
-
-ENV PATH=$PATH:/usr/sbin
-
-EXPOSE 9001
-
-CMD [ "php-fpm8.4" , "-F" ]
+ENTRYPOINT ["/usr/local/bin/script.sh"]

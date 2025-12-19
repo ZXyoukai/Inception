@@ -1,7 +1,15 @@
-FROM debian:latest
+FROM debian:bullseye
 
-RUN apt-get update && apt-get install -y nginx
+RUN apt-get update && apt-get install -y nginx openssl
 
-COPY ./nginx.conf /etc/nginx/conf.d/default.conf
+RUN mkdir -p /etc/nginx/ssl
 
-CMD ["nginx", "-g", "daemon off;"]
+RUN openssl req -x509 -nodes -out /etc/nginx/ssl/inception.crt -keyout /etc/nginx/ssl/inception.key -subj "/C=FR/ST=IDF/L=Paris/O=42/OU=42/CN=dgermano.42.fr/UID=dgermano"
+
+COPY ./conf/nginx.conf /etc/nginx/conf.d/default.conf
+
+RUN mkdir -p /var/run/nginx
+
+EXPOSE 443
+
+CMD [ "nginx", "-g", "daemon off;" ]

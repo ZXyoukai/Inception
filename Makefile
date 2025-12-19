@@ -1,13 +1,24 @@
-RUN = docker-compose.yml
-SRCS = srcs
+NAME = inception
+DOCKER_COMPOSE = ./srcs/docker-compose.yml
 
-all:
-	./ $(SRCS)$(RUN)
-	
-clean:
+all: up
 
-fclean:
+up:
+	mkdir -p /home/dgermano/data/mariadb
+	mkdir -p /home/dgermano/data/wordpress
+	docker-compose -f $(DOCKER_COMPOSE) up -d --build
 
-re:
+down:
+	docker-compose -f $(DOCKER_COMPOSE) down
 
-.PHONY: all clean fclean re
+clean: down
+	docker system prune -a
+
+fclean: clean
+	sudo rm -rf /home/dgermano/data/mariadb/*
+	sudo rm -rf /home/dgermano/data/wordpress/*
+	docker volume rm $$(docker volume ls -q) || true
+
+re: fclean all
+
+.PHONY: all up down clean fclean re
