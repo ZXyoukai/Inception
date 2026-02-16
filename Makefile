@@ -4,20 +4,21 @@ DOCKER_COMPOSE = ./srcs/docker-compose.yml
 all: up
 
 up:
-	mkdir -p /home/dgermano/data/mariadb
-	mkdir -p /home/dgermano/data/wordpress
+	sudo mkdir -p /home/${USER}/data/mariadb
+	sudo mkdir -p /home/${USER}/data/wordpress
 	docker-compose -f $(DOCKER_COMPOSE) up -d --build
 
 down:
 	docker-compose -f $(DOCKER_COMPOSE) down
 
 clean: down
-	docker system prune -a
+	# docker system prune -a -y
+	docker rmi mariadb nginx wordpress
 
 fclean: clean
-	rm -rf /home/dgermano/data/mariadb/*
-	rm -rf /home/dgermano/data/wordpress/*
-	docker volume rm $$(docker volume ls -q) || true
+	docker volume rm mariadb_data wordpress_data
+	sudo rm -rf /home/${USER}/data/mariadb
+	sudo rm -rf /home/${USER}/data/wordpress
 
 re: fclean all
 
