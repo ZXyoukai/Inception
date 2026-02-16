@@ -3,7 +3,11 @@
 # Wait for MariaDB
 sleep 10
 
+
 if [ ! -f /var/www/html/wp-config.php ]; then
+
+    wp core download --allow-root --path='/var/www/html'    
+    
     wp config create --allow-root \
         --dbname=$MYSQL_DATABASE \
         --dbuser=$MYSQL_USER \

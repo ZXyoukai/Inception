@@ -31,7 +31,7 @@ services:
     build: ./Nginx
     restart: always
     ports:
-      - "8080:8080"
+      - "8000:80"
     env_file:
       - .env
     volumes:

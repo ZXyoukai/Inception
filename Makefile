@@ -15,8 +15,8 @@ clean: down
 	docker system prune -a
 
 fclean: clean
-	sudo rm -rf /home/dgermano/data/mariadb/*
-	sudo rm -rf /home/dgermano/data/wordpress/*
+	rm -rf /home/dgermano/data/mariadb/*
+	rm -rf /home/dgermano/data/wordpress/*
 	docker volume rm $$(docker volume ls -q) || true
 
 re: fclean all
