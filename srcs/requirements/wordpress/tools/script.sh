@@ -1,7 +1,7 @@
 #!/bin/bash
-export MYSQL_PASSWORD=$(tr -d '\n' < /run/secrets/mysql_password)
+export MYSQL_PASSWORD=$(tr -d '\n' < /run/secrets/db_password)
 export WP_ADMIN_PASSWORD=$(tr -d '\n' < /run/secrets/wordpress_admin_password)
-export WP_PASSWORD=$(tr -d '\n' < /run/secrets/wordpress_password)
+export WP_PASSWORD=$(tr -d '\n' < /run/secrets/credentials)
 # Wait for MariaDB
 sleep 5
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-export MYSQL_PASSWORD=$(tr -d '\n' < /run/secrets/mysql_password)
-export MYSQL_ROOT_PASSWORD=$(tr -d '\n' < /run/secrets/mysql_root_password)
+export MYSQL_PASSWORD=$(tr -d '\n' < /run/secrets/db_password)
+export MYSQL_ROOT_PASSWORD=$(tr -d '\n' < /run/secrets/db_root_password)
 
 service mariadb start
 

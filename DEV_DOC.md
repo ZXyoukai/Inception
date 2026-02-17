@@ -23,15 +23,26 @@ sudo usermod -aG docker $USER
 
 ```
 Inception/
-├── Makefile, README.md, USER_DOC.md, DEV_DOC.md, BONUS_DOC.md
-├── secrets/                      # Passwords (not in Git)
+├── Makefile
+├── secrets/
+│   ├── credentials.txt
+│   ├── db_password.txt
+│   ├── db_root_password.txt
+│   └── wordpress_admin_password
 └── srcs/
-    ├── docker-compose.yml        # Orchestration
-    ├── .env                      # Configuration
-    ├── mariadb/                  # Database
-    ├── nginx/                    # Web server
-    ├── wordpress/                # CMS
-    └── [redis, ftp, adminer, static-site, portainer]  # Bonus
+    ├── docker-compose.yml
+    ├── .env
+    └── requirements/
+        ├── bonus/
+        │   ├── adminer/
+        │   ├── ftp/
+        │   ├── portainer/
+        │   ├── redis/
+        │   └── static-site/
+        ├── mariadb/
+        ├── nginx/
+        ├── tools/
+        └── wordpress/
 ```
 
 ### Initial Setup
@@ -39,9 +50,9 @@ Inception/
 **1. Configure secrets:**
 ```bash
 mkdir -p secrets
-openssl rand -base64 16 > secrets/mysql_root_password
-openssl rand -base64 16 > secrets/mysql_password
-openssl rand -base64 16 > secrets/wordpress_password
+openssl rand -base64 16 > secrets/db_root_password.txt
+openssl rand -base64 16 > secrets/db_password.txt
+openssl rand -base64 16 > secrets/credentials.txt
 openssl rand -base64 16 > secrets/wordpress_admin_password
 chmod 600 secrets/*
 ```
@@ -150,7 +161,7 @@ docker logs -f nginx
 ```bash
 docker exec nginx nginx -t                   # NGINX syntax
 docker exec wordpress php-fpm8.2 -t          # PHP-FPM
-docker exec wordpress mysql -h mariadb -u wpuser -p$(cat secrets/mysql_password) -e "SELECT 1;"
+docker exec wordpress mysql -h mariadb -u wpuser -p$(cat secrets/db_password.txt) -e "SELECT 1;"
 ```
 
 ## Data Persistence
@@ -167,14 +178,14 @@ docker exec wordpress mysql -h mariadb -u wpuser -p$(cat secrets/mysql_password)
 ## Service Details
 
 ### MariaDB
-**Files:** `Dockerfile`, `conf/50-server.cnf`, `tools/script.sh`
+**Files:** `srcs/requirements/mariadb/Dockerfile`, `conf/50-server.cnf`, `tools/script.sh`
 ```bash
-docker exec mariadb mysql -u root -p$(cat secrets/mysql_root_password) -e "SHOW DATABASES;"
-docker exec mariadb mysqldump -u root -p$(cat secrets/mysql_root_password) wordpress > backup.sql
+docker exec mariadb mysql -u root -p$(cat secrets/db_root_password.txt) -e "SHOW DATABASES;"
+docker exec mariadb mysqldump -u root -p$(cat secrets/db_root_password.txt) wordpress > backup.sql
 ```
 
 ### WordPress
-**Files:** `Dockerfile`, `conf/www.conf`, `tools/script.sh`
+**Files:** `srcs/requirements/wordpress/Dockerfile`, `conf/www.conf`, `tools/script.sh`
 ```bash
 docker exec wordpress wp --allow-root --path=/var/www/html core version
 docker exec wordpress wp --allow-root --path=/var/www/html user list
@@ -182,7 +193,7 @@ docker exec wordpress wp --allow-root --path=/var/www/html redis status
 ```
 
 ### NGINX
-**Files:** `Dockerfile`, `conf/nginx.conf`
+**Files:** `srcs/requirements/nginx/Dockerfile`, `conf/nginx.conf`
 ```bash
 docker exec nginx nginx -t
 docker exec nginx nginx -s reload

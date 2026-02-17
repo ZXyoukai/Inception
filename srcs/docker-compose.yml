@@ -1,7 +1,7 @@
 services:
   mariadb:
     container_name: mariadb
-    build: ./mariadb
+    build: ./requirements/mariadb
     image: mariadb
     restart: always
     env_file:
@@ -11,12 +11,12 @@ services:
     networks:
       - wp_db
     secrets:
-      - mysql_password
-      - mysql_root_password
+      - db_password
+      - db_root_password
 
   wordpress:
     container_name: wordpress
-    build: ./wordpress
+    build: ./requirements/wordpress
     image: wordpress
     restart: always
     env_file:
@@ -29,15 +29,15 @@ services:
     depends_on:
       - mariadb
     secrets:
-      - wordpress_password
+      - credentials
       - wordpress_admin_password
-      - mysql_password
-      - mysql_root_password
+      - db_password
+      - db_root_password
     
 
   nginx:
     container_name: nginx
-    build: ./nginx
+    build: ./requirements/nginx
     image: nginx
     restart: always
     ports:
@@ -54,7 +54,7 @@ services:
 
   redis:
     container_name: redis
-    build: ./redis
+    build: ./requirements/bonus/redis
     image: redis
     restart: always
     networks:
@@ -64,7 +64,7 @@ services:
 
   ftp:
     container_name: ftp
-    build: ./ftp
+    build: ./requirements/bonus/ftp
     image: ftp
     restart: always
     ports:
@@ -81,7 +81,7 @@ services:
 
   adminer:
     container_name: adminer
-    build: ./adminer
+    build: ./requirements/bonus/adminer
     image: adminer
     restart: always
     volumes:
@@ -94,7 +94,7 @@ services:
 
   static-site:
     container_name: static-site
-    build: ./static-site
+    build: ./requirements/bonus/static-site
     image: static-site
     restart: always
     ports:
@@ -104,7 +104,7 @@ services:
 
   portainer:
     container_name: portainer
-    build: ./portainer
+    build: ./requirements/bonus/portainer
     image: portainer
     restart: always
     ports:
@@ -147,12 +147,12 @@ volumes:
     driver: local
 
 secrets:
-  mysql_password:
-    file: ../secrets/mysql_password
-  mysql_root_password:
-    file: ../secrets/mysql_root_password
-  wordpress_password:
-    file: ../secrets/wordpress_password
+  db_password:
+    file: ../secrets/db_password.txt
+  db_root_password:
+    file: ../secrets/db_root_password.txt
+  credentials:
+    file: ../secrets/credentials.txt
   wordpress_admin_password:
     file: ../secrets/wordpress_admin_password
   

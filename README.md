@@ -39,9 +39,9 @@ All services are orchestrated using Docker Compose, implementing security best p
    
    # Create secrets
    mkdir -p secrets
-   openssl rand -base64 16 > secrets/mysql_password
-   openssl rand -base64 16 > secrets/mysql_root_password
-   openssl rand -base64 16 > secrets/wordpress_password
+   openssl rand -base64 16 > secrets/db_password.txt
+   openssl rand -base64 16 > secrets/db_root_password.txt
+   openssl rand -base64 16 > secrets/credentials.txt
    openssl rand -base64 16 > secrets/wordpress_admin_password
    
    # Configure environment (edit as needed)

@@ -117,7 +117,7 @@ docker stop mariadb
 
 **Contributor:**
 - Username: Value of `WP_USER` in `.env` (default: `user`)
-- Password: Content of `secrets/wordpress_password`f-signed)
+- Password: Content of `secrets/credentials.txt`
 3. Click "Advanced" and "Accept Risk and Continue" (or similar, depending on browser)
 4. The WordPress homepage will appear
 
@@ -132,7 +132,7 @@ docker stop mariadb
 
 **Additional user (contributor role):**
 - **Username:** `user`
-- **Password:** Located in `secrets/wordpress_password`
+- **Password:** Located in `secrets/credentials.txt`
 
 ### Accessing from Another Machine
 
@@ -178,10 +178,10 @@ cat secrets/mysql_password
 
 **To view all credentials (for administrative purposes):**
 ```bash
-echo "=== MariaDB Root Password ===" && cat secrets/mysql_root_password && \
-echo -e "\n=== MariaDB User Password ===" && cat secrets/mysql_password && \
+echo "=== MariaDB Root Password ===" && cat secrets/db_root_password.txt && \
+echo -e "\n=== MariaDB User Password ===" && cat secrets/db_password.txt && \
 echo -e "\n=== WordPress Admin Password ===" && cat secrets/wordpress_admin_password && \
-echo -e "\n=== WordPress User Password ===" && cat secrets/wordpress_password
+echo -e "\n=== WordPress User Password ===" && cat secrets/credentials.txt
 ```
 
 ### Changing Credentials
@@ -201,7 +201,7 @@ echo -e "\n=== WordPress User Password ===" && cat secrets/wordpress_password
 make down
 
 # 2. Update the secret file
-echo "new_password" > secrets/mysql_password
+echo "new_password" > secrets/db_password.txt
 
 # 3. Clean the database volume
 make fclean
@@ -248,7 +248,7 @@ docker exec wordpress wp --allow-root --path=/var/www/html redis status
 **MariaDB:**
 ```bash
 docker logs mariadb
-docker exec mariadb mysql -u root -p$(cat secrets/mysql_root_password) -e "SHOW DATABASES;"
+docker exec mariadb mysql -u root -p$(cat secrets/db_root_password.txt) -e "SHOW DATABASES;"
 ```
 
 **Bonus Services:**
@@ -287,7 +287,7 @@ docker logs wordpress
 ```bash
 docker ps | grep mariadb
 docker logs mariadb
-docker exec mariadb mysqladmin -u root -p$(cat secrets/mysql_root_password) ping
+docker exec mariadb mysqladmin -u root -p$(cat secrets/db_root_password.txt) ping
 ```
 
 ### Viewing Service Logs
@@ -316,7 +316,7 @@ openssl s_client -connect dgermano.42.fr:443 -servername dgermano.42.fr
 
 **Test MariaDB connection from WordPress container:**
 ```bash
-docker exec wordpress mysql -h mariadb -u wpuser -p$(cat secrets/mysql_password) -e "SHOW DATABASES;"
+docker exec wordpress mysql -h mariadb -u wpuser -p$(cat secrets/db_password.txt) -e "SHOW DATABASES;"
 ```
 
 **Test WordPress installation:**
@@ -382,7 +382,7 @@ sudo tar -czf wordpress_backup_$(date +%Y%m%d).tar.gz /home/$USER/data/wordpress
 
 **Backup MariaDB database:**
 ```bash
-docker exec mariadb mysqldump -u root -p$(cat secrets/mysql_root_password) wordpress > wordpress_db_backup_$(date +%Y%m%d).sql
+docker exec mariadb mysqldump -u root -p$(cat secrets/db_root_password.txt) wordpress > wordpress_db_backup_$(date +%Y%m%d).sql
 ```
 
 **Backup both data directories:**
@@ -402,7 +402,7 @@ make up
 
 **Restore MariaDB database:**
 ```bash
-cat wordpress_db_backup_YYYYMMDD.sql | docker exec -i mariadb mysql -u root -p$(cat secrets/mysql_root_password) wordpress
+cat wordpress_db_backup_YYYYMMDD.sql | docker exec -i mariadb mysql -u root -p$(cat secrets/db_root_password.txt) wordpress
 ```
 
 ## Troubleshooting
