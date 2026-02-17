@@ -3,7 +3,7 @@ export MYSQL_PASSWORD=$(tr -d '\n' < /run/secrets/mysql_password)
 export WP_ADMIN_PASSWORD=$(tr -d '\n' < /run/secrets/wordpress_admin_password)
 export WP_PASSWORD=$(tr -d '\n' < /run/secrets/wordpress_password)
 # Wait for MariaDB
-
+sleep 5
 
 if [ ! -f /var/www/html/wp-config.php ]; then
 

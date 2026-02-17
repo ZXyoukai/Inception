@@ -6,7 +6,7 @@ all: up
 up:
 	sudo mkdir -p /home/${USER}/data/mariadb
 	sudo mkdir -p /home/${USER}/data/wordpress
-	docker-compose -f $(DOCKER_COMPOSE) up -d --build
+	docker-compose -f $(DOCKER_COMPOSE) up -d --build -y
 
 down:
 	docker-compose -f $(DOCKER_COMPOSE) down
