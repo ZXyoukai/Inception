@@ -18,7 +18,7 @@ RUN mkdir -p /run/php
 
 COPY ./conf/www.conf /etc/php/8.2/fpm/pool.d/www.conf
 COPY ./tools/script.sh /usr/local/bin/script.sh
-COPY ./tools/script.sh /usr/local/bin/script.sh
+
 
 RUN chmod +x /usr/local/bin/script.sh
 

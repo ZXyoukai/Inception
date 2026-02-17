@@ -6,7 +6,6 @@ RUN apt-get update && apt-get install -y \
 
 # Download and install Portainer
 RUN wget https://github.com/portainer/portainer/releases/download/2.19.4/portainer-2.19.4-linux-amd64.tar.gz && \
-    tar -tf portainer-2.19.4-linux-amd64.tar.gz && \
     tar -xzf portainer-2.19.4-linux-amd64.tar.gz && \
     mv portainer /usr/local/bin/ && \
     chmod +x /usr/local/bin/portainer/portainer && \

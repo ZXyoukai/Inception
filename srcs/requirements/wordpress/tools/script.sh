@@ -3,8 +3,22 @@ export MYSQL_PASSWORD=$(tr -d '\n' < /run/secrets/db_password)
 export WP_ADMIN_PASSWORD=$(tr -d '\n' < /run/secrets/wordpress_admin_password)
 export WP_PASSWORD=$(tr -d '\n' < /run/secrets/credentials)
 # Wait for MariaDB
-sleep 5
+MAX_DB_RETRIES=30
+DB_RETRY_DELAY=2
+DB_HOST="mariadb"
+DB_PORT="3306"
 
+attempt=0
+
+while ! mysqladmin ping -h"${DB_HOST}" -P"${DB_PORT}" -u"${MYSQL_USER}" -p"${MYSQL_PASSWORD}" --silent >/dev/null 2>&1; do
+    attempt=$((attempt + 1))
+    if [ "${attempt}" -ge "${MAX_DB_RETRIES}" ]; then
+        echo "Error: MariaDB is not available after ${MAX_DB_RETRIES} attempts. Exiting." >&2
+        exit 1
+    fi
+    echo "Waiting for MariaDB to be ready... (attempt ${attempt}/${MAX_DB_RETRIES})"
+    sleep "${DB_RETRY_DELAY}"
+done
 if [ ! -f /var/www/html/wp-config.php ]; then
 
     wp core download --allow-root --path='/var/www/html'    
