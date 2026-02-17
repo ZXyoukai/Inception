@@ -205,51 +205,6 @@ ftp -p localhost 21
 
 > **Detailed bonus info:** [BONUS_DOC.md](BONUS_DOC.md)
 
-## Troubleshooting
-
-**Build errors:**
-```bash
-docker builder prune -a                      # Clear cache
-docker compose -f srcs/docker-compose.yml build --no-cache
-```
-
-**Container crashes:**
-```bash
-docker logs <container>                      # Check logs
-docker run -it --rm <image> /bin/bash       # Debug interactively
-```
-
-**Port conflicts:**
-```bash
-sudo ss -tlnp | grep 443                     # Find process
-sudo kill <PID>                              # Kill process
-```
-
-**Permission issues:**
-```bash
-sudo chown -R $USER:$USER /home/$USER/data
-sudo chmod -R 755 /home/$USER/data
-```
-
-> **Comprehensive testing:** [TESTING.md](TESTING.md)
-
-## Advanced Topics
-
-**Add new service:**
-1. Create `srcs/newservice/Dockerfile`
-2. Add to `docker-compose.yml`
-3. Update Makefile if needed
-4. `make re`
-
-**Performance tuning:**
-```dockerfile
-# PHP OPcache
-RUN echo "opcache.enable=1" >> /etc/php/8.2/fpm/conf.d/opcache.ini
-
-# MariaDB (in 50-server.cnf)
-innodb_buffer_pool_size = 256M
-```
-
 ## Resources
 
 - [Docker Docs](https://docs.docker.com/)

@@ -195,25 +195,13 @@ This project uses **Docker** to create isolated, portable service environments. 
 
 AI tools (ChatGPT, Claude) were used in this project for the following purposes:
 
-1. **Documentation and Research** (~30% of time saved)
+1. **Documentation and Research** (~5% of time saved)
    - Understanding Docker networking concepts and best practices
    - Comparing storage strategies (volumes vs bind mounts)
    - Researching security implementations (secrets, TLS protocols)
    - Structuring technical comparison tables
 
-2. **Configuration Syntax** (~20% of time saved)
-   - NGINX reverse proxy configuration examples
-   - PHP-FPM pool optimization settings
-   - MariaDB server configuration parameters
-   - Docker Compose syntax validation
-
-3. **Debugging Assistance** (~15% of time saved)
-   - Troubleshooting shell script issues with Docker secrets parsing
-   - Resolving network connectivity between containers
-   - Fixing permission problems with volumes
-   - Understanding error messages in container logs
-
-4. **Documentation Writing** (~25% of time saved)
+2. **Documentation Writing** (~12% of time saved)
    - Structuring README, USER_DOC, and DEV_DOC files
    - Formatting markdown tables and code blocks
    - Generating comprehensive testing commands
