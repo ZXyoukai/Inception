@@ -46,10 +46,74 @@ services:
       - .env
     volumes:
       - wordpress_data:/var/www/html
+      - adminer_data:/var/www/adminer
     networks:
       - nginx_vol
     depends_on:
       - wordpress
+
+  redis:
+    container_name: redis
+    build: ./redis
+    image: redis
+    restart: always
+    networks:
+      - wp_db
+    volumes:
+      - redis_data:/data
+
+  ftp:
+    container_name: ftp
+    build: ./ftp
+    image: ftp
+    restart: always
+    ports:
+      - "21:21"
+      - "21000-21010:21000-21010"
+    env_file:
+      - .env
+    volumes:
+      - wordpress_data:/var/www/html
+    networks:
+      - nginx_vol
+    depends_on:
+      - wordpress
+
+  adminer:
+    container_name: adminer
+    build: ./adminer
+    image: adminer
+    restart: always
+    volumes:
+      - adminer_data:/var/www/html
+    networks:
+      - wp_db
+      - nginx_vol
+    depends_on:
+      - mariadb
+
+  static-site:
+    container_name: static-site
+    build: ./static-site
+    image: static-site
+    restart: always
+    ports:
+      - "8080:80"
+    networks:
+      - nginx_vol
+
+  portainer:
+    container_name: portainer
+    build: ./portainer
+    image: portainer
+    restart: always
+    ports:
+      - "9443:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - nginx_vol
 
 networks:
   nginx_vol:
@@ -64,15 +128,23 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /home/kali/data/mariadb
+      device: /home/${USER}/data/mariadb
   wordpress_data:
     name: wordpress_data
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /home/kali/data/wordpress
-      #       - db_data:/var/lib/mysql
+      device: /home/${USER}/data/wordpress
+  redis_data:
+    name: redis_data
+    driver: local
+  adminer_data:
+    name: adminer_data
+    driver: local
+  portainer_data:
+    name: portainer_data
+    driver: local
 
 secrets:
   mysql_password:

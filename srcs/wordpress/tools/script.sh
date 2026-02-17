@@ -29,6 +29,17 @@ if [ ! -f /var/www/html/wp-config.php ]; then
         --user_pass=$WP_PASSWORD \
         --role=contributor \
         --path='/var/www/html'
+    
+    # Install and configure Redis Object Cache plugin
+    wp plugin install redis-cache --activate --allow-root --path='/var/www/html'
+    
+    # Configure Redis in wp-config.php
+    wp config set WP_REDIS_HOST redis --allow-root --path='/var/www/html'
+    wp config set WP_REDIS_PORT 6379 --raw --allow-root --path='/var/www/html'
+    wp config set WP_CACHE true --raw --allow-root --path='/var/www/html'
+    
+    # Enable Redis cache
+    wp redis enable --allow-root --path='/var/www/html'
 fi
 
 exec /usr/sbin/php-fpm8.2 -F

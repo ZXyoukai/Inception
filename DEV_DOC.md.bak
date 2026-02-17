@@ -1,0 +1,503 @@
+# Developer Documentation
+
+## Overview
+
+Technical documentation for developers to understand, modify, and extend the Inception infrastructure.
+
+## Quick Setup
+
+### Prerequisites
+- Linux (Debian/Ubuntu)
+- Docker Engine 20.10+
+- Docker Compose 2.0+
+- Make, Git
+
+**Install Docker:**
+```bash
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+sudo usermod -aG docker $USER
+```
+
+### Project Structure
+
+```
+Inception/
+├── Makefile, README.md, USER_DOC.md, DEV_DOC.md, BONUS_DOC.md
+├── secrets/                      # Passwords (not in Git)
+└── srcs/
+    ├── docker-compose.yml        # Orchestration
+    ├── .env                      # Configuration
+    ├── mariadb/                  # Database
+    ├── nginx/                    # Web server
+    ├── wordpress/                # CMS
+    └── [redis, ftp, adminer, static-site, portainer]  # Bonus
+```
+
+### Initial Setup
+
+**1. Configure secrets:**
+```bash
+mkdir -p secrets
+openssl rand -base64 16 > secrets/mysql_root_password
+openssl rand -base64 16 > secrets/mysql_password
+openssl rand -base64 16 > secrets/wordpress_password
+openssl rand -base64 16 > secrets/wordpress_admin_password
+chmod 600 secrets/*
+```
+
+**3. Configure environment variables:**
+
+Edit `srcs/.env`:
+```bash
+nano srcs/.env
+```
+
+**Important settings to customize:**
+```dotenv
+# Domain configuration - change to your desired domain
+DOMAIN_NAME=dgermano.42.fr
+
+# Data storage paths - adjust based on your username
+DATA_PATH=/home/dgermano/data
+
+# MySQL configuration
+MYSQL_USER=wpuser
+**Important settings to customize:**
+```dotenv
+# Domain
+DOMAIN_NAME=dgermano.42.fr
+
+# MySQL
+MYSQL_USER=wpuser
+MYSQL_DATABASE=wordpress
+
+# WordPress
+WP_TITLE=Inception
+WP_ADMIN_USER=dgermano
+WP_ADMIN_EMAIL=your_email@example.com
+WP_USER=user
+WP_EMAIL=user_email@example.com
+
+# FTP (bonus)
+FTP_USER=ftpuser
+FTP_PASSWORD=ftppassword123
+```ordpress_data:
+    driver_opts:
+      device: /home/<YOUR_USERNAME>/data/wordpress
+```
+
+**5. Add domain to hosts file:**
+```bash
+echo "127.0.0.1 dgermano.42.fr" | sudo tee -a /etc/hosts
+```
+
+**6. Create .gitignore (if not present):**
+```bash
+cat > .gitignore << EOF
+secrets/
+srcs/.env
+.DS_Store
+*.log
+EOF
+```
+
+## Building and Launching
+
+### Using Makefile
+
+The Makefile provides convenient commands for managing the infrastructure:
+
+**Build and start all services:**
+```bash
+make
+# or explicitly
+make up
+```
+
+**Stop all services:**
+```bash
+make down
+```
+
+**Remove images only:**
+```bash
+make clean
+```
+
+**Full cleanup (images, volumes, data):**
+```bash
+make fclean
+```
+
+**Rebuild from scratch:**
+```bash
+make re
+```
+
+### Using Docker Compose Directly
+
+**Build images:**
+```bash
+docker compose -f srcs/docker-compose.yml build
+```
+
+**Start services:**
+```bash
+docker compose -f srcs/docker-compose.yml up -d
+```
+
+**Stop services:**
+```bash
+docker compose -f srcs/docker-compose.yml down
+```
+
+**View logs:**
+```bash
+docker compose -f srcs/docker-compose.yml logs -f
+## Build & Deploy
+
+### Makefile Commands
+```bash
+make           # Build and start all services
+make down      # Stop services
+make clean     # Remove images
+make fclean    # Full cleanup (volumes + data)
+make re        # Rebuild from scratch
+```
+
+### Docker Compose
+```bash
+docker compose -f srcs/docker-compose.yml build [service]
+docker compose -f srcs/docker-compose.yml up -d [service]
+docker compose -f srcs/docker-compose.yml logs -f [service]
+```ccess MariaDB CLI:**
+```bash
+docker exec -it mariadb mysql -u root -p$(cat secrets/mysql_root_password)
+```
+
+**Access WordPress via WP-CLI:**
+```bash
+docker exec wordpress wp --allow-root --path=/var/www/html core version
+docker exec wordpress wp --allow-root --path=/var/www/html user list
+docker exec wordpress wp --allow-root --path=/var/www/html plugin list
+docker exec wordpress wp --allow-root --path=/var/www/html theme list
+```
+
+### Managing Containers
+
+**Start/stop/restart a specific container:**
+```bash
+docker start <container_name>
+docker stop <container_name>
+docker restart <container_name>
+```
+
+**Remove a container:**
+```bash
+docker rm <container_name>           # Remove stopped container
+docker rm -f <container_name>        # Force remove running container
+```
+
+**View container processes:**
+```bash
+docker top <container_name>
+```
+
+## Volume Management
+
+### Inspecting Volumes
+
+**List all volumes:**
+```bash
+docker volume ls
+```
+
+**Inspect volume details:**
+```bash
+docker volume inspect mariadb_data
+## Container Management
+
+### Essential Commands
+```bash
+# Inspect
+docker ps                                    # List containers
+docker logs [-f] <container>                 # View logs
+docker exec -it <container> /bin/bash       # Shell access
+docker inspect <container>                   # Details
+docker stats                                 # Resource usage
+
+# Control
+docker start/stop/restart <container>
+docker rm [-f] <container>
+
+# Execute commands
+docker exec <container> <command>
+docker exec mariadb mysql -u root -p$(cat secrets/mysql_root_password) -e "SHOW DATABASES;"
+docker exec wordpress wp --allow-root --path=/var/www/html core version
+docker exec nginx nginx -t
+```est connectivity between containers:**
+```bash
+# From WordPress to MariaDB
+docker exec wordpress ping -c 3 mariadb
+docker exec wordpress nc -zv mariadb 3306
+
+# From NGINX to WordPress
+docker exec nginx ping -c 3 wordpress
+docker exec nginx nc -zv wordpress 9000
+```
+
+## Volume & Network Management
+
+### Volumes
+```bash
+docker volume ls                             # List volumes
+docker volume inspect <volume>               # Details
+docker system df -v                          # Disk usage
+
+# Data locations
+ls -la /home/$USER/data/mariadb              # MariaDB data
+ls -la /home/$USER/data/wordpress            # WordPress files
+
+# Backup/Restore
+docker run --rm -v mariadb_data:/source -v $(pwd):/backup alpine tar -czf /backup/db.tar.gz -C /source .
+docker run --rm -v mariadb_data:/target -v $(pwd):/backup alpine sh -c "cd /target && tar -xzf /backup/db.tar.gz"
+```
+
+### Networks
+```bash
+docker network ls                            # List networks
+docker network inspect nginx_vol             # Details
+docker exec wordpress ping -c 2 mariadb      # Test connectivity
+docker exec wordpress nslookup mariadb       # DNS resolution
+```Existing data is detected
+2. MariaDB uses existing database files
+3. WordPress skips installation (checks for `wp-config.php`)
+4. Site comes up with existing content
+
+**After `make fclean`:**
+1. All volumes removed
+2. Host directories deleted
+3. Next `make` performs fresh installation
+
+## Service-Specific Details
+
+### MariaDB Service
+
+**Dockerfile highlights:**
+```dockerfile
+FROM debian:bookworm
+RUN apt-get update && apt-get install -y mariadb-server
+COPY ./conf/50-server.cnf /etc/mysql/mariadb.conf.d/50-server.cnf
+## Service-Specific Details
+
+### MariaDB Service
+
+**Key files:**
+- `Dockerfile` - Debian Bookworm + MariaDB server
+- `conf/50-server.cnf` - Server configuration (bind-address, port)
+- `tools/script.sh` - Initialization (creates DB, users, grants privileges)
+
+**Useful commands:**
+```bash
+# Database operations
+docker exec mariadb mysql -u root -p$(cat secrets/mysql_root_password) -e "SHOW DATABASES;"
+docker exec mariadb mysqldump -u root -p$(cat secrets/mysql_root_password) wordpress > backup.sql
+cat backup.sql | docker exec -i mariadb mysql -u root -p$(cat secrets/mysql_root_password) wordpress
+```
+
+### WordPress Service
+
+**Key files:**
+- `Dockerfile` - Debian Bookworm + PHP 8.2 + PHP-Redis + WP-CLI
+- `conf/www.conf` - PHP-FPM pool configuration
+- `tools/script.sh` - WordPress installation + Redis cache setup
+
+**Useful commands:**
+```bash
+# WordPress management
+docker exec wordpress wp --allow-root --path=/var/www/html core version
+docker exec wordpress wp --allow-root --path=/var/www/html user list
+docker exec wordpress wp --allow-root --path=/var/www/html plugin list
+
+# Redis status
+docker exec wordpress wp --allow-root --path=/var/www/html redis status
+```
+
+### NGINX Service
+
+**Key files:**
+- `Dockerfile` - Debian Bookworm + NGINX + OpenSSL
+- `conf/nginx.conf` - Server config (SSL, reverse proxy to WordPress & Adminer)
+
+**Useful commands:**
+```bash
+# Configuration testing
+docker exec nginx nginx -t
+docker exec nginx nginx -s reload
+
+# SSL verification
+openssl s_client -connect dgermano.42.fr:443 -servername dgermano.42.fr
+```
+
+### Bonus Services
+
+**Redis:**
+```bash
+docker exec redis redis-cli ping
+docker exec redis redis-cli info stats
+docker exec -it redis redis-cli monitor
+```
+
+**FTP:**
+```bash
+ftp -p localhost 21
+docker exec ftp cat /etc/vsftpd.conf
+```
+
+**Adminer:** Access via browser at https://dgermano.42.fr/adminer
+
+**Static Site:** Access via browser at http://localhost:8080
+## Development Workflow
+
+**1. Modify configuration:**
+```bash
+nano srcs/nginx/conf/nginx.conf
+```
+
+**2. Rebuild service:**
+```bash
+docker compose -f srcs/docker-compose.yml build nginx
+docker compose -f srcs/docker-compose.yml up -d --force-recreate nginx
+```
+
+**3. Check logs:**
+```bash
+docker logs -f nginx
+```
+
+**Test configurations:**
+```bash
+docker exec nginx nginx -t                   # NGINX syntax
+docker exec wordpress php-fpm8.2 -t          # PHP-FPM
+docker exec wordpress mysql -h mariadb -u wpuser -p$(cat secrets/mysql_password) -e "SELECT 1;"
+```
+4. Update networks and volumes as needed
+
+5. Rebuild:
+```bash
+make re
+```
+
+### Using Real SSL Certificates
+
+To use Let's Encrypt certificates instead of self-signed:
+
+1. Install certbot on host
+2. Generate certificates
+3. Mount certificates into NGINX container
+4. Update nginx.conf to use mounted certificates
+
+### Performance Optimization
+
+**Enable OPcache for PHP:**
+Add to WordPress Dockerfile:
+```dockerfile
+RUN echo "opcache.enable=1" >> /etc/php/8.2/fpm/conf.d/opcache.ini
+```
+
+**Optimize MariaDB:**
+Edit `50-server.cnf`:
+```ini
+innodb_buffer_pool_size = 256M
+innodb_log_file_size = 64M
+```
+
+## Best Practices
+
+1. **Always use secrets for sensitive data** - Never use environment variables for passwords
+2. **Use .dockerignore** - Exclude unnecessary files from build context
+3. **Layer caching** - Order Dockerfile commands from least to most frequently changed
+4. **Health checks** - Add health checks to docker-compose.yml for automatic recovery
+5. **Logging** - Use structured logging and log rotation
+6. **Security** - Keep base images updated, scan for vulnerabilities
+7. **Documentation** - Comment complex scripts and configurations
+
+## Additional Resources
+
+- [Docker Documentation](https://docs.docker.com/)
+- [Docker Compose Reference](https://docs.docker.com/compose/compose-file/)
+- [NGINX Documentation](https://nginx.org/en/docs/)
+- [MariaDB Knowledge Base](https://mariadb.com/kb/en/)
+- [WordPress Developer Resources](https://developer.wordpress.org/)
+- [WP-CLI Commands](https://developer.wordpress.org/cli/commands/)
+## Data Persistence
+
+**MariaDB:** `/var/lib/mysql` → `/home/$USER/data/mariadb`
+**WordPress:** `/var/www/html` → `/home/$USER/data/wordpress`
+**Secrets:** `/run/secrets/` (in-memory, from `secrets/` directory)
+
+**Lifecycle:**
+1. First run: Directories created, services initialized
+2. Restart: Existing data detected and reused
+3. `make fclean`: All data removed, next run is fresh install
+```dockerfile
+# Add to Redis Dockerfile
+RUN echo "save 900 1" >> /etc/redis/redis.conf
+```
+
+> **Comprehensive testing and troubleshooting:** See [TESTING.md](TESTING.md) and [DEFENSE.md](DEFENSE.md)## Additional Resources
+
+- [Docker Documentation](https://docs.docker.com/)
+- [Docker Compose Reference](https://docs.docker.com/compose/compose-file/)
+- [NGINX Documentation](https://nginx.org/en/docs/)
+- [MariaDB Knowledge Base](https://mariadb.com/kb/en/)
+- [WordPress Developer Resources](https://developer.wordpress.org/)
+- [WP-CLI Commands](https://developer.wordpress.org/cli/commands/)
+- [Redis Documentation](https://redis.io/docs/)
+
+**Project Documentation:**
+- [README.md](README.md) - Main technical documentation
+- [USER_DOC.md](USER_DOC.md) - User guide and service management
+- [BONUS_DOC.md](BONUS_DOC.md) - Bonus services detailed guide
+- [TESTING.md](TESTING.md) - Testing and verification commands
+- [DEFENSE.md](DEFENSE.md) - Defense preparation guide## Service Details
+
+### MariaDB
+**Files:** `Dockerfile`, `conf/50-server.cnf`, `tools/script.sh`
+```bash
+docker exec mariadb mysql -u root -p$(cat secrets/mysql_root_password) -e "SHOW DATABASES;"
+docker exec mariadb mysqldump -u root -p$(cat secrets/mysql_root_password) wordpress > backup.sql
+```
+
+### WordPress
+**Files:** `Dockerfile`, `conf/www.conf`, `tools/script.sh`
+```bash
+docker exec wordpress wp --allow-root --path=/var/www/html core version
+docker exec wordpress wp --allow-root --path=/var/www/html user list
+docker exec wordpress wp --allow-root --path=/var/www/html redis status
+```
+
+### NGINX
+**Files:** `Dockerfile`, `conf/nginx.conf`
+```bash
+docker exec nginx nginx -t
+docker exec nginx nginx -s reload
+openssl s_client -connect dgermano.42.fr:443 -servername dgermano.42.fr
+```
+
+### Bonus Services
+```bash
+# Redis
+docker exec redis redis-cli ping
+docker exec redis redis-cli info stats
+
+# FTP
+ftp -p localhost 21
+
+# Adminer: https://dgermano.42.fr/adminer
+# Static: http://localhost:8080
+# Portainer: https://localhost:9443
+```
+
+> **Detailed bonus info:** [BONUS_DOC.md](BONUS_DOC.md)
